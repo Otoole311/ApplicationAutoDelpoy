@@ -38,13 +38,13 @@ jobs:
   test-frontend:
     docker:
       # Docker image here
-      - image: cimg/node:18.4.0
+      - image: circleci/node:13.8.0
     steps:
       # Checkout code from git
       - checkout
       # Restore from cache
       - restore_cache:
-          keys: [frontend-end-test-cache]
+          keys: [frontend-build-cache]
       # Your job code here
       - run:
           name: Run frontend test
@@ -52,6 +52,7 @@ jobs:
             cd frontend
             npm install
             npm run test
+  
   test-backend:
     docker:
       # Docker image here
@@ -61,7 +62,7 @@ jobs:
       - checkout
       # Restore from cache
       - restore_cache:
-          keys: [backend-end-test-cache]
+          keys: [backend-build-cache]
       # Your job code here
       - run:
           name: Run backend test
@@ -69,6 +70,41 @@ jobs:
             cd backend
             npm install
             npm run test
+
+  scan-frontend:
+    docker:
+      - image: circleci/node:13.8.0
+    steps:
+      # Checkout code from git
+      - checkout
+      # Restore from cache
+      - restore_cache:
+          keys: [frontend-build-cache]
+      # Your job code here
+      - run:
+          name: Scan Frontend for security vulnerabilities
+          command: |
+            cd frontend
+            npm install
+            npm audit --audit-level=critical
+
+  scan-backend:
+    docker:
+      # Docker image here
+      - image: cimg/node:18.4.0
+    steps:
+      # Checkout code from git
+      - checkout
+      # Restore from cache
+      - restore_cache:
+          keys: [backend-build-cache]
+      # Your job code here
+      - run:
+          name: Scan Backend for security vulnerability issues
+          command: |
+            cd backend
+            npm install
+            npm --audit-level=critical
 
 workflows:
   default:
@@ -79,3 +115,7 @@ workflows:
           requires: [build-frontend]
       - test-backend:
           requires: [build-backend]
+      - scan-backend:
+          requires: [build-backend]
+      - scan-frontend:
+          requires: [build-frontend]
