@@ -34,15 +34,15 @@ jobs:
             cd backend
             npm install
             npm run build
+      - save_cache:
+          paths: [backend/node_modules]
+          key: backend-build-cache-data
       - slack/notify:
           event: fail
           template: basic_fail_1
       - slack/notify:
           event: pass
           template: success_tagged_deploy_1
-      - save_cache:
-          paths: [backend/node_modules]
-          key: backend-build-cache-data
   
   test-frontend:
     docker:
