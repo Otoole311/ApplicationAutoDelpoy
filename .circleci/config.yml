@@ -296,6 +296,8 @@ jobs:
           command: |
             # your code here
             yum install -y tar gzip
+            curl -sL https://rpm.nodesource.com/setup_10.x | bash -
+            yum install -y nodejs
       - run:
           name: Get backend url
           command: |
@@ -341,11 +343,17 @@ jobs:
       # attach workspace
       - attach_workspace:
           at: ~/
+      - restore_cache:
+          keys: [backend-build-cache-data]
       - run:
           name: Install dependencies
           command: |
             # your code here
             apk add --update ansible
+            apk add --no-cache curl
+            apk add --no-cache openssh-client
+            apk add --no-cache --upgrade bash
+            pip install awscli
       - run:
           name: Deploy backend
           command: |
