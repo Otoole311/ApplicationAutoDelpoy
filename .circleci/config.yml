@@ -256,7 +256,6 @@ jobs:
       - checkout
       - attach_workspace:
           at: ~/
-      - create-dotenv-file
       - restore_cache:
           keys: [backend-build-cache-data]
       - run:
