@@ -331,7 +331,6 @@ jobs:
             echo "API_URL = ${API_URL}"
             echo API_URL="http://${BACKEND_IP}:3030" >> frontend/.env
             cat frontend/.env
-      - create-dotenv-file
       - run:
           name: Deploy frontend objects
           command: |
@@ -386,9 +385,9 @@ jobs:
             cd backend
             # npm i
             # npm run build
-            # cd ..
+            cd ..
             # Zip the directory
-            tar czf artifact.tar.gz backend/
+            tar -C backend -czvf artifact.tar.gz .
             cd .circleci/ansible
             echo "Contents  of the inventory.txt file is -------"
             cat inventory.txt
