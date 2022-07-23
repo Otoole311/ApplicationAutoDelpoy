@@ -374,9 +374,9 @@ jobs:
           command: |
             # your code here
             apk add --update ansible
-            # apk add --no-cache curl
-            # apk add --no-cache openssh-client
-            # apk add --no-cache --upgrade bash
+            apk add --no-cache curl
+            apk add --no-cache openssh-client
+            apk add --no-cache --upgrade bash
             pip install awscli
       - run:
           name: Deploy backend
@@ -399,6 +399,38 @@ jobs:
           event: pass
           template: success_tagged_deploy_1
       #Here's where you will add some code to rollback on failure 
+      - destroy-environment
+      - revert-migrations
+
+  smoke-test:
+    docker:
+      # Lightweight Docker image
+      - image: alpine:latest 
+    steps:
+      - checkout
+      - attach_workspace:
+          at: ~/
+      - run:
+          name: Install dependencies
+          command: |
+            apk --no-cache add curl
+            apk add --update npm
+            apk add --no-cache python3 py3-pip \
+              && pip3 install --upgrade pip \
+              && pip install awscli
+      - create-dotenv-file
+      - run:
+          name: Backend smoke test.
+          command: |
+            BACKEND_IP=$(curl -H "token: 7079126b-54c1-4ae1-b7cf-577d8a27c76f" --request GET https://api.memstash.io/values/BACKEND_IP_${CIRCLE_WORKFLOW_ID:0:7})
+            API_URL="http://${BACKEND_IP}:3030"
+            echo "${API_URL}"
+            curl -s "${API_URL}/api/status" -v
+      - run:
+          name: Frontend smoke test.
+          command: |
+            URL="http://udapeople-${CIRCLE_WORKFLOW_ID:0:7}.s3-website-us-west-2.amazonaws.com"
+            curl -s ${URL} | grep "Welcome"
       - destroy-environment
       - revert-migrations
 
