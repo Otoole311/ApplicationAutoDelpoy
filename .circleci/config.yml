@@ -378,6 +378,7 @@ jobs:
             apk add --no-cache openssh-client
             apk add --no-cache --upgrade bash
             pip install awscli
+      - create-dotenv-file
       - run:
           name: Deploy backend
           command: |
@@ -457,3 +458,5 @@ workflows:
           requires: [run-migrations]
       - deploy-backend:
           requires: [run-migrations]
+      #- smoke-test:
+      #    requires: [deploy-backend, deploy-frontend]
