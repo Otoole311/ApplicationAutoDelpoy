@@ -41,14 +41,16 @@ commands:
       - run:
           name: Revert migrations
           # Add when this will run
+          when: on_fail
           command: |
             # Curl command here to see if there was a successful migration associated with the workflow id, store result in SUCCESS variable
-            SUCCESS= $(curl --insecure "https://kvdb.io/GihzLn9tKaS8UmwtTTnRhb/migration_'${CIRCLE_WORKFLOW_ID:0:7}'")
+            SUCCESS= $(curl --insecure "https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID:0:7}'")
             if(( $SUCCESS==1 )); 
             then
               cd ~/project/backend
               npm install
               Add revert code here. You can find this in the Getting Started section.
+              npm run migrations:revert
             fi
 jobs:
   build-frontend:
@@ -423,7 +425,7 @@ jobs:
       - run:
           name: Backend smoke test.
           command: |
-            BACKEND_IP=$(curl -H "token: 7079126b-54c1-4ae1-b7cf-577d8a27c76f" --request GET https://api.memstash.io/values/BACKEND_IP_${CIRCLE_WORKFLOW_ID:0:7})
+            BACKEND_IP=$(aws ecs describe-instances --query 'Reservations[*].PublicIpAddress' --output text)
             API_URL="http://${BACKEND_IP}:3030"
             echo "${API_URL}"
             curl -s "${API_URL}/api/status" -v
@@ -431,7 +433,13 @@ jobs:
           name: Frontend smoke test.
           command: |
             URL="http://udapeople-${CIRCLE_WORKFLOW_ID:0:7}.s3-website-us-west-2.amazonaws.com"
-            curl -s ${URL} | grep "Welcome"
+            echo $fURL}
+            if curl -s ${URL} grep "Welcome"
+            then
+              exit 0
+            elSe
+              exit 1
+            fi
       - destroy-environment
       - revert-migrations
 
@@ -458,5 +466,5 @@ workflows:
           requires: [run-migrations]
       - deploy-backend:
           requires: [run-migrations]
-      #- smoke-test:
-      #    requires: [deploy-backend, deploy-frontend]
+      - smoke-test:
+          requires: [deploy-backend, deploy-frontend]
