@@ -401,7 +401,7 @@ jobs:
             cd ..
             # Zip the directory
             tar -C backend -czvf artifact.tar.gz .
-            export ANSIBLE_HOST_KEY_CHECKING=false
+            # export ANSIBLE_HOST_KEY_CHECKING=false
             cd .circleci/ansible
             echo "Contents  of the inventory.txt file is -------"
             cat inventory.txt
