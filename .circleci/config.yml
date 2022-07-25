@@ -13,6 +13,7 @@ commands:
           name: Destroy environments
           when: on_fail
           command: |
+            aws s3 rm "s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7}" --recursive
             aws cloudformation delete-stack --stack-name udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7}
             aws cloudformation delete-stack --stack-name udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:7}
   
@@ -44,12 +45,11 @@ commands:
           when: on_fail
           command: |
             # Curl command here to see if there was a successful migration associated with the workflow id, store result in SUCCESS variable
-            SUCCESS= $(curl --insecure "https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID:0:7}")
+            SUCCESS= $(curl -H "token: e52b52de-ee26-41a5-86e8-e8dcc3d995a5" --request GET "https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID:0:7}")
             if(( $SUCCESS==1 )); 
             then
               cd ~/project/backend
               npm install
-              Add revert code here. You can find this in the Getting Started section.
               npm run migrations:revert
             fi
 jobs:
@@ -444,6 +444,70 @@ jobs:
       - destroy-environment
       - revert-migrations
 
+  cloudfront-update:
+    docker:
+      # Docker image here that supports AWS CLI
+      - image: amazon/aws-cli
+    steps:
+      # Checkout code from git
+      - checkout
+      - run:
+          name: Install dependencies
+          command: |
+            # your code here
+            yum install -y tar gzip curl
+            curl -sL https://rpm.nodesource.com/setup_10.x | bash -
+            yum install -y nodejs
+      - run:
+          name: Send old workflow ID to memstash
+          working_directory: ./.circleci/files
+          command: |
+            OLD_WORKFLOW_ID=$(aws cloudformation list-exports \
+              --query "Exports[?Name==\`WorkflowID\`].Value" \
+              --no-paginate --output text)
+            echo "OLD_WORKFLOW_ID=$OLD_WORKFLOW_ID"
+            curl -H "Content-Type: text/plain" -H "token: 7079126b-54c1-4ae1-b7cf-577d8a27c76f" --request PUT --data "$OLD_WORKFLOW_ID" https://api.memstash.io/values/OLD_WORKFLOW_ID
+      - run:
+          name: Update cloudfront distribution
+          command: |
+            aws cloudformation deploy \
+              --template-file ./.circleci/files/cloudfront.yml \
+              --tags project=udapeople \
+              --stack-name "udapeople-cloudfront-production" \
+              --parameter-overrides WorkflowID="${CIRCLE_WORKFLOW_ID:0:7}"
+      # Here's where you will add some code to rollback on failure  
+      - destroy-environment
+      - revert-migrations
+
+cleanup:
+    docker:
+      # Docker image that supports AWS CLI
+      - image: amazon/aws-cli
+    steps:
+      - checkout
+      - run:
+          name: Get old workflow ID and remove old stacks and files
+          command: |
+            OLD_WORKFLOW_ID=$(curl -H "token: 7079126b-54c1-4ae1-b7cf-577d8a27c76f" --request GET https://api.memstash.io/values/OLD_WORKFLOW_ID)
+            echo "OLD_WORKFLOW_ID=$OLD_WORKFLOW_ID"
+            NEW_WORKFLOW_ID=${CIRCLE_WORKFLOW_ID:0:7}
+            echo "NEW_WORKFLOW_ID=$NEW_WORKFLOW_ID"
+            if [ -z "$OLD_WORKFLOW_ID" ]
+            then
+                echo "No OLD_WORKFLOW_ID found, nothing to cleanup."
+            else
+                if [[ "$NEW_WORKFLOW_ID" != "$OLD_WORKFLOW_ID" ]]
+                then
+                    echo "$OLD_WORKFLOW_ID!=$NEW_WORKFLOW_ID: the old stack and files are going to be deleted"
+                    aws s3 rm "s3://udapeople-${OLD_WORKFLOW_ID}" --recursive
+                    aws cloudformation delete-stack --stack-name "udapeople-frontend-${OLD_WORKFLOW_ID}"
+                    aws cloudformation delete-stack --stack-name "udapeople-backend-${OLD_WORKFLOW_ID}"
+                else
+                    echo "$OLD_WORKFLOW_ID==$NEW_WORKFLOW_ID: the old and new stacks are the same, no changes applied"
+                fi
+            fi
+
+
 workflows:
   default:
     jobs:
@@ -469,3 +533,9 @@ workflows:
           requires: [run-migrations]
       - smoke-test:
           requires: [deploy-backend, deploy-frontend]
+      - smoke-test:
+          requires: [deploy-backend, deploy-frontend]
+      - cloudfront-update:
+          requires: [smoke-test]
+      - cleanup:
+          requires: [cloudfront-update]
