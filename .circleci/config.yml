@@ -479,7 +479,7 @@ jobs:
       - destroy-environment
       - revert-migrations
 
-cleanup:
+  cleanup:
     docker:
       # Docker image that supports AWS CLI
       - image: amazon/aws-cli
