@@ -9,12 +9,6 @@
     src: /root/project/backend.tar.gz
     dest: /home/ubuntu/
 
-- name: Unarchive
-  become: true
-  shell : |
-      cd /home/ubuntu/
-      tar xvzf artifact.tar.gz -C .
-
 - name: Build backend
   ignore_errors: yes
   shell: |
