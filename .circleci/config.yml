@@ -421,7 +421,8 @@ jobs:
             BACKEND_IP=$(aws ec2 describe-instances --query 'Reservations[*].Instances[*].PublicIpAddress' --output text)
             API_URL="http://${BACKEND_IP}:3030"
             echo "${API_URL}"
-            curl "${API_URL}/api/status"
+            sleep 30
+            curl --retry 10 --retry-delay 5 -v "${API_URL}/api/status"
       - run:
           name: Frontend smoke test.
           command: |
@@ -522,6 +523,9 @@ workflows:
           requires: [run-migrations]
       - deploy-backend:
           requires: [run-migrations]
+      - smoke-test:
+          requires: [deploy-backend, deploy-frontend]
       - cloudfront-update:
+          requires: [smoke-test]
       - cleanup:
           requires: [cloudfront-update]
