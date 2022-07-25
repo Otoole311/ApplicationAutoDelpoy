@@ -429,7 +429,7 @@ jobs:
       - run:
           name: Backend smoke test.
           command: |
-            BACKEND_IP=$(aws ec2 describe-instances --query 'Reservations[*].PublicIpAddress' --output text)
+            BACKEND_IP=$(aws ec2 describe-instances --query 'Reservations[*].Instances[*].PublicIpAddress' --output text)
             API_URL="http://${BACKEND_IP}:3030"
             echo "${API_URL}"
             curl -s "${API_URL}/api/status" -v
@@ -441,7 +441,7 @@ jobs:
             if curl -s ${URL} grep "Welcome"
             then
               exit 0
-            elSe
+            else
               exit 1
             fi
       - destroy-environment
