@@ -14,6 +14,7 @@ commands:
           when: on_fail
           command: |
             aws s3 rm "s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7}" --recursive
+            aws s3 rb "s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7}" --force
             aws cloudformation delete-stack --stack-name udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7}
             aws cloudformation delete-stack --stack-name udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:7}
   
@@ -383,18 +384,6 @@ jobs:
       - run:
           name: Deploy backend
           command: |
-            # your code here
-            # cd backend
-            # npm install
-            # npm run build
-            # cd ..
-            # # Zip the directory
-            # tar -C backend -czvf artifact.tar.gz .
-            # # export ANSIBLE_HOST_KEY_CHECKING=false
-            # cd .circleci/ansible
-            # echo "Contents  of the inventory.txt file is -------"
-            # cat inventory.txt
-            # ansible-playbook -i inventory.txt deploy-backend.yml
             pwd
             tar czf backend.tar.gz backend/
             export ANSIBLE_HOST_KEY_CHECKING=false
@@ -425,20 +414,20 @@ jobs:
             apk add --no-cache python3 py3-pip \
               && pip3 install --upgrade pip \
               && pip install awscli
-      - create-dotenv-file
+      # - create-dotenv-file
       - run:
           name: Backend smoke test.
           command: |
             BACKEND_IP=$(aws ec2 describe-instances --query 'Reservations[*].Instances[*].PublicIpAddress' --output text)
             API_URL="http://${BACKEND_IP}:3030"
             echo "${API_URL}"
-            curl -s "${API_URL}/api/status" -v
+            curl -s --head "${API_URL}/api/status" -v
       - run:
           name: Frontend smoke test.
           command: |
             URL="http://udapeople-${CIRCLE_WORKFLOW_ID:0:7}.s3-website-us-east-1.amazonaws.com"
             echo $fURL}
-            if curl -s ${URL} grep "Welcome"
+            if curl -s --head ${URL} grep "Welcome"
             then
               exit 0
             else
