@@ -25,7 +25,7 @@
       raw: test -e /usr/bin/python3 || (apt -y update && apt install -y python3)
       changed_when: false
 
-    - name: 'Wait port 22 to become reachable/usable.'
+    - name: 'Wait port 22 to become reachable/usable'
       wait_for:
         port: 22
         delay: 10
@@ -36,7 +36,7 @@
     # Add more env vars here
     - TYPEORM_ENTITIES: "{{ lookup('env', 'TYPEORM_ENTITIES')}}"
     - TYPEORM_HOST: "{{ lookup('env', 'TYPEORM_HOST')}}"
-    - TYPEORM_PORT: "{{ lookup('env','TYPEORM_PORT') }}"
+    - TYPEORM_PORT: "{{ lookup('env', 'TYPEORM_PORT')}}"
     - TYPEORM_USERNAME: "{{ lookup('env', 'TYPEORM_USERNAME')}}"
     - TYPEORM_PASSWORD: "{{ lookup('env', 'TYPEORM_PASSWORD')}}"
     - TYPEORM_DATABASE: "{{ lookup('env', 'TYPEORM_DATABASE')}}"
