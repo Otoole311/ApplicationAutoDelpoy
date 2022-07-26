@@ -46,12 +46,15 @@ commands:
           when: on_fail
           command: |
             # Curl command here to see if there was a successful migration associated with the workflow id, store result in SUCCESS variable
-            SUCCESS= $(curl -H "token: e52b52de-ee26-41a5-86e8-e8dcc3d995a5" --request GET "https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID:0:7}")
-            if(( $SUCCESS==1 )); 
+            #SUCCESS= $(curl -H "token: e52b52de-ee26-41a5-86e8-e8dcc3d995a5" --request GET "https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID:0:7}")
+            SUCCESS=1
+            if(( ${SUCCESS}==1 )) 
             then
-              cd ~/project/backend
-              npm install
-              npm run migrations:revert
+              # cd ~/project/backend
+              # npm install
+              
+              # npm run migrations:revert
+              exit 0
             fi
 jobs:
   build-frontend:
@@ -490,14 +493,14 @@ jobs:
             then
                 echo "No OLD_WORKFLOW_ID found, nothing to cleanup."
             else
-                if [[ "$NEW_WORKFLOW_ID" != "$OLD_WORKFLOW_ID" ]]
+                if [[ "${NEW_WORKFLOW_ID}" != "${OLD_WORKFLOW_ID}" ]]
                 then
                     echo "$OLD_WORKFLOW_ID!=$NEW_WORKFLOW_ID: the old stack and files are going to be deleted"
                     aws s3 rm "s3://udapeople-${OLD_WORKFLOW_ID}" --recursive
                     aws cloudformation delete-stack --stack-name "udapeople-frontend-${OLD_WORKFLOW_ID}"
                     aws cloudformation delete-stack --stack-name "udapeople-backend-${OLD_WORKFLOW_ID}"
                 else
-                    echo "$OLD_WORKFLOW_ID==$NEW_WORKFLOW_ID: the old and new stacks are the same, no changes applied"
+                    echo "${OLD_WORKFLOW_ID}==${NEW_WORKFLOW_ID}: the old and new stacks are the same, no changes applied"
                 fi
             fi
 
