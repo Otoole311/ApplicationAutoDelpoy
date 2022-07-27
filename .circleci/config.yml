@@ -303,7 +303,7 @@ jobs:
               echo "Migrating"
               curl --insecure https://kvdb.io/4dTF5mWR7fZnLDVFoYTec3/migration_${CIRCLE_WORKFLOW_ID:0:7} -d "1"
             else
-              curl --insecure https://kvdb.io/4dTF5mWR7fZnLDVFoYTec3/migration_${CIRCLE_WORKFLOW_ID:0:7} -d "0"
+              curl --insecure https://kvdb.io/4dTF5mWR7fZnLDVFoYTec3/migration_${CIRCLE_WORKFLOW_ID:0:7} -d "1"
               echo "Did not migrate"
             fi
       # - slack/notify:
