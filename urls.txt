@@ -1,2 +1,2 @@
 GitHub Repository: https://github.com/Otoole311/ApplicationAutoDelpoy.git\
-S3 Bucket: http://udapeople-804a174.s3-website-us-east-1.amazonaws.com}
+S3 Bucket: http://udapeople-89d552d.s3-website-us-east-1.amazonaws.com
