@@ -270,7 +270,8 @@ jobs:
       - create-dotenv-file
       - persist_to_workspace:
           root: ~/
-          path: [project/backend]   
+          paths: 
+            - project/backend   
       - destroy-environment
 
   run-migrations:
