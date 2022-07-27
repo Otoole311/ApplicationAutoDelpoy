@@ -291,6 +291,7 @@ jobs:
           name: Run migrations
           command: |
             # Your code here
+            cat .env
             cd backend
             npm run migrations > migrations_dump.txt
             cat migrations_dump.txt
@@ -303,7 +304,7 @@ jobs:
               echo "Migrating"
               curl --insecure https://kvdb.io/4dTF5mWR7fZnLDVFoYTec3/migration_${CIRCLE_WORKFLOW_ID:0:7} -d "1"
             else
-              curl --insecure https://kvdb.io/4dTF5mWR7fZnLDVFoYTec3/migration_${CIRCLE_WORKFLOW_ID:0:7} -d "1"
+              curl --insecure https://kvdb.io/4dTF5mWR7fZnLDVFoYTec3/migration_${CIRCLE_WORKFLOW_ID:0:7} -d "0"
               echo "Did not migrate"
             fi
       # - slack/notify:
