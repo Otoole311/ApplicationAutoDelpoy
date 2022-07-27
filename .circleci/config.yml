@@ -252,7 +252,7 @@ jobs:
       - run:
           name: Install dependencies
           command: |
-            apk add --no-cache tar gzip ansible aws-cli
+            apk add --no-cache tar gzip ansible openssh-client aws-cli
       # attach workspace
       - attach_workspace:
           at: ~/
@@ -261,7 +261,8 @@ jobs:
           name: Configure server
           command: |
             cat ./.circleci/ansible/inventory.txt
-            cd .circleci/ansible ansible-playbook -i inventory.txt configure-server.yml 
+            export ANSIBLE_HOST_KEY_CHECKING=false
+            cd .circleci/ansible ansible-playbook -i inventory.txt configure-server.yml
       - persist_to_workspace:
           root: ~/
           paths: 
@@ -291,8 +292,8 @@ jobs:
           name: Run migrations
           command: |
             # Your code here
-            cat .env
             cd backend
+            cat .env
             npm run migrations > migrations_dump.txt
             cat migrations_dump.txt
       - run:
