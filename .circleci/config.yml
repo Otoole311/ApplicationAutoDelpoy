@@ -269,8 +269,8 @@ jobs:
       # Here's where you will add some code to rollback on failure  
       - create-dotenv-file
       - persist_to_workspace:
-        root: ~/
-        path: [project/backend]   
+          root: ~/
+          path: [project/backend]   
       - destroy-environment
 
   run-migrations:
