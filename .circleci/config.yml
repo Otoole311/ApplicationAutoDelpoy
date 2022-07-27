@@ -255,7 +255,6 @@ jobs:
           name: Install dependencies
           command: |
             apk add --update ansible
-      - create-dotenv-file
       - run:
           name: Configure server
           command: |
@@ -267,7 +266,11 @@ jobs:
       # - slack/notify:
       #     event: pass
       #     template: success_tagged_deploy_1
-      # Here's where you will add some code to rollback on failure      
+      # Here's where you will add some code to rollback on failure  
+      - create-dotenv-file
+      - persist_to_workspace:
+        root: ~/
+        path: [project/backend]   
       - destroy-environment
 
   run-migrations:
@@ -276,10 +279,10 @@ jobs:
     steps:
       # Checkout code from git
       - checkout
-      - attach_workspace:
-          at: ~/
       - restore_cache:
           keys: [my-backend-build]
+      - attach_workspace:
+          at: ~/
       - create-dotenv-file
       - run:
           name: Run migrations
@@ -370,11 +373,11 @@ jobs:
       # Add ssh keys with fingerprint
       - add_ssh_keys:
           fingerprints: ["84:b2:32:a9:e6:ef:c1:76:46:2d:e1:11:b7:73:13:45"]
+      - restore_cache:
+          keys: [my-backend-build]
       # attach workspace
       - attach_workspace:
           at: ~/
-      - restore_cache:
-          keys: [my-backend-build]
       - run:
           name: Install dependencies
           command: |
