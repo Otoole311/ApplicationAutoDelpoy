@@ -439,7 +439,7 @@ jobs:
             # Fetch and prepare the BACKEND_IP env var
             export API_URL="http://${BACKEND_IP}:3030"
             echo "${API_URL}"
-            if curl "${API_URL}/api/status" -v | grep "welcome"
+            if curl -v --noproxy localhost, "${API_URL}/api/status" | grep "welcome"
             then
                 return 0
             else
