@@ -83,7 +83,7 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          keys: [my-backend-build]
+          keys: [my-backend-build-cache]
       - run:
           name: Back-end build
           command: |
@@ -92,7 +92,7 @@ jobs:
             npm run build
       - save_cache:
           paths: [backend/node_modules]
-          key: my-backend-build
+          key: my-backend-build-cache
       - slack/notify:
           event: fail
           template: basic_fail_1
@@ -133,7 +133,7 @@ jobs:
       - checkout
       # Restore from cache
       - restore_cache:
-          keys: [my-backend-build]
+          keys: [my-backend-build-cache]
       # Your job code here
       - run:
           name: Run backend test
@@ -180,7 +180,7 @@ jobs:
       - checkout
       # Restore from cache
       - restore_cache:
-          keys: [my-backend-build]
+          keys: [my-backend-build-cache]
       # Your job code here
       - run:
           name: Scan Backend for security vulnerability issues
@@ -283,7 +283,7 @@ jobs:
             unzip -qq awscliv2.zip
             sudo ./aws/install
       - restore_cache:
-          keys: [my-backend-build]
+          keys: [my-backend-build-cache]
       - attach_workspace:
           at: ~/
       #- create-dotenv-file
@@ -293,6 +293,7 @@ jobs:
             # Your code here
             cd backend
             npm run migrations > migrations_dump.txt
+            cat migrations_dump.txt
       - run:
           name: Send migration results to kvdb
           command: |
@@ -382,26 +383,26 @@ jobs:
             apk add --no-cache --upgrade bash
             pip install awscli
       - restore_cache:
-          keys: [my-backend-build]
+          keys: [my-backend-build-cache]
       # attach workspace
       - attach_workspace:
           at: ~/
       - run:
           name: Deploy backend
           command: |
-            # pwd
-            # tar czf backend.tar.gz backend/
-            # export ANSIBLE_HOST_KEY_CHECKING=false
-            # ansible-playbook -i ./.circleci/ansible/inventory.txt ./.circleci/ansible/deploy-backend.yml -vvv
-            
-            cd backend
-            npm install
-            npm run build
-            cd ..
-            tar -C backend -czvf artifact.tar.gz .
+            pwd
+            tar czf backend.tar.gz backend/
             export ANSIBLE_HOST_KEY_CHECKING=false
-            cat ~/project/.circleci/ansible/inventory.txt
-            ansible-playbook -i ~/project/.circleci/ansible/inventory.txt ~/project/.circleci/ansible/deploy-backend.yml
+            ansible-playbook -i ./.circleci/ansible/inventory.txt ./.circleci/ansible/deploy-backend.yml -vvv
+            
+            # cd backend
+            # npm install
+            # npm run build
+            # cd ..
+            # tar -C backend -czvf artifact.tar.gz .
+            # export ANSIBLE_HOST_KEY_CHECKING=false
+            # cat ~/project/.circleci/ansible/inventory.txt
+            # ansible-playbook -i ~/project/.circleci/ansible/inventory.txt ~/project/.circleci/ansible/deploy-backend.yml
       - slack/notify:
           event: fail
           template: basic_fail_1
