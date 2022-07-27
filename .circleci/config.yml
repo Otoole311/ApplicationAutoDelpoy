@@ -421,10 +421,15 @@ jobs:
           name: Backend smoke test.
           command: |
             BACKEND_IP=$(aws ec2 describe-instances --query 'Reservations[*].Instances[*].PublicIpAddress' --output text)
-            API_URL="http://${BACKEND_IP}:3030"
+            # Fetch and prepare the BACKEND_IP env var
+            export API_URL="http://${BACKEND_IP}:3030"
             echo "${API_URL}"
-            # sleep 30
-            # curl --retry 10 --retry-delay 5 -v "${API_URL}/api/status"
+            if curl "${API_URL}/api/status" | grep "ok"
+            then
+                return 0
+            else
+                return 1
+            fi
       - run:
           name: Frontend smoke test.
           command: |
@@ -432,10 +437,10 @@ jobs:
             echo $fURL}
             if curl -s ${URL} | grep "Welcome"
             then
-              exit 0
+              return 1
             else
               # echo "frontend failed"
-              exit 0
+              return 1
             fi
       - destroy-environment
       - revert-migrations
