@@ -248,26 +248,19 @@ jobs:
       # Add ssh keys with fingerprint
       - add_ssh_keys:
           fingerprints: ["84:b2:32:a9:e6:ef:c1:76:46:2d:e1:11:b7:73:13:45"]
-      # attach workspace
-      - attach_workspace:
-          at: ~/
       - run:
           name: Install dependencies
           command: |
-            apk add --update ansible
+            apk add --update  --no-cache tar gzip ansible aws-cli
+      # attach workspace
+      - attach_workspace:
+          at: ~/
+      - create-dotenv-file
       - run:
           name: Configure server
           command: |
             cat ./.circleci/ansible/inventory.txt
             cd .circleci/ansible ansible-playbook -i inventory.txt configure-server.yml 
-      # - slack/notify:
-      #     event: fail
-      #     template: basic_fail_1
-      # - slack/notify:
-      #     event: pass
-      #     template: success_tagged_deploy_1
-      # Here's where you will add some code to rollback on failure  
-      - create-dotenv-file
       - persist_to_workspace:
           root: ~/
           paths: 
@@ -280,21 +273,22 @@ jobs:
     steps:
       # Checkout code from git
       - checkout
+      - run:
+          name: install Dependencies
+          command: |
+            npm install
+            npm run build
       - restore_cache:
           keys: [my-backend-build]
       - attach_workspace:
           at: ~/
-      - create-dotenv-file
+      #- create-dotenv-file
       - run:
           name: Run migrations
           command: |
             # Your code here
             cd backend
-            cat .env
-            npm install
-            npm run build
             npm run migrations > migrations_dump.txt
-            cat migrations_dump.txt
       - run:
           name: Send migration results to kvdb
           command: |
@@ -374,11 +368,6 @@ jobs:
       # Add ssh keys with fingerprint
       - add_ssh_keys:
           fingerprints: ["84:b2:32:a9:e6:ef:c1:76:46:2d:e1:11:b7:73:13:45"]
-      - restore_cache:
-          keys: [my-backend-build]
-      # attach workspace
-      - attach_workspace:
-          at: ~/
       - run:
           name: Install dependencies
           command: |
@@ -387,13 +376,26 @@ jobs:
             apk add --no-cache openssh-client
             apk add --no-cache --upgrade bash
             pip install awscli
+      - restore_cache:
+          keys: [my-backend-build]
+      # attach workspace
+      - attach_workspace:
+          at: ~/
       - run:
           name: Deploy backend
           command: |
-            pwd
-            tar czf backend.tar.gz backend/
-            export ANSIBLE_HOST_KEY_CHECKING=false
-            ansible-playbook -i ./.circleci/ansible/inventory.txt ./.circleci/ansible/deploy-backend.yml -vvv
+            # pwd
+            # tar czf backend.tar.gz backend/
+            # export ANSIBLE_HOST_KEY_CHECKING=false
+            # ansible-playbook -i ./.circleci/ansible/inventory.txt ./.circleci/ansible/deploy-backend.yml -vvv
+            
+            cd backend
+            npm install
+            npm run build
+            cd ..
+            tar -C backend -czvf artifact.tar.gz .
+            cat ~/project/.circleci/ansible/inventory.txt
+            ansible-playbook -i ~/project/.circleci/ansible/inventory.txt ~/project/.circleci/ansible/deploy-backend.yml
       - slack/notify:
           event: fail
           template: basic_fail_1
@@ -410,8 +412,8 @@ jobs:
       - image: alpine:latest 
     steps:
       - checkout
-      - attach_workspace:
-          at: ~/
+      # - attach_workspace:
+      #     at: ~/
       - run:
           name: Install dependencies
           command: |
@@ -420,7 +422,7 @@ jobs:
             apk add --no-cache python3 py3-pip \
               && pip3 install --upgrade pip \
               && pip install awscli
-      - create-dotenv-file
+      # - create-dotenv-file
       - run:
           name: Backend smoke test.
           command: |
