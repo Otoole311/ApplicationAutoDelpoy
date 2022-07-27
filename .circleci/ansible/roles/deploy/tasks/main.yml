@@ -31,7 +31,7 @@
 
 - name: Copy compiled files
   unarchive:
-    src: /root/project/backend.tar.gz
+    src: backend.tar.gz
     dest: /home/ubuntu/
 
 - name: Build backend
