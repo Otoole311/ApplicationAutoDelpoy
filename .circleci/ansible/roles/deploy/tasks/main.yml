@@ -1,93 +1,56 @@
-# ---
-# - name: "update apt packages."
-#   become: yes
-#   apt:
-#     update_cache: yes
-
-# - name: "upgrade packages"
-#   become: yes
-#   apt:
-#     upgrade: yes
-
-# - name: remove dependencies that are no longer required
-#   become: yes
-#   apt:
-#     autoremove: yes
-
-# - name: "install dependencies."
-#   become: yes
-#   apt:
-#     name: ["nodejs", "npm"]
-#     state: latest
-#     update_cache: yes
-
-# - name: "install pm2"
-#   become: yes
-#   npm:
-#     name: pm2
-#     global: yes
-#     production: yes
-#     state: present
-
-# - name: Copy compiled files
-#   unarchive:
-#     src: /root/project/backend.tar.gz
-#     dest: /home/ubuntu/
-
-# - name: Build backend
-#   ignore_errors: yes
-#   shell: |
-#     cd /home/ubuntu/backend
-#     npm i
-#     npm run build
-
-# - name: Stop and delete already running server
-#   ignore_errors: yes
-#   shell: |
-#     pm2 stop backend
-#     pm2 delete backend
-
-# - name: "run server"
-#   become: true
-#   shell : |
-#       cd /home/ubuntu/backend
-#       npm install
-#       pm2 stop default
-#       pm2 start npm -- start
-
-
 ---
-- name: 'update and upgrade packages.'
+- name: "update apt packages."
+  become: yes
+  apt:
+    update_cache: yes
+
+- name: "upgrade packages"
   become: yes
   apt:
     upgrade: yes
-    update_cache: yes
-    cache_valid_time: 86400
-- name: remove unneeded deps
+
+- name: remove dependencies that are no longer required
   become: yes
   apt:
     autoremove: yes
-- name: install deps
+
+- name: "install dependencies."
   become: yes
   apt:
-    name: ['nodejs', 'npm']
+    name: ["nodejs", "npm"]
     state: latest
     update_cache: yes
-- name: install pm2
+
+- name: "install pm2"
   become: yes
   npm:
     name: pm2
     global: yes
-    state: latest
     production: yes
-- name: extract artifact
-  become: yes
-  unarchive:
-    src: files/artifact.tar.gz
-    dest: .
+    state: present
 
-- name: start app
-  become: yes
+- name: Copy compiled files
+  unarchive:
+    src: /root/project/backend.tar.gz
+    dest: /home/ubuntu/
+
+- name: Build backend
+  ignore_errors: yes
   shell: |
-    pm2 delete all
-    pm2 start npm -- start
+    cd /home/ubuntu/backend
+    npm i
+    npm run build
+
+- name: Stop and delete already running server
+  ignore_errors: yes
+  shell: |
+    pm2 stop backend
+    pm2 delete backend
+
+- name: "run server"
+  become: true
+  shell : |
+      cd /home/ubuntu/backend
+      npm install
+      pm2 stop default
+      pm2 start npm -- start
