@@ -196,6 +196,7 @@ jobs:
             cd frontend
             npm install
             npm audit fix --audit-level=critical --force
+            npm audit --audit-level=critical
       - slack/notify:
           event: fail
           template: basic_fail_1
@@ -220,6 +221,8 @@ jobs:
             cd backend
             npm install
             npm  audit fix --audit-level=critical --force
+            npm audit fix --force
+            npm audit --audit-level=critical
       - slack/notify:
           event: fail
           template: basic_fail_1
@@ -234,7 +237,9 @@ jobs:
     steps:
       # Checkout code from git
       - checkout
-      - run: yum install -y tar gzip
+      - run:
+          name: install dependencies 
+          command: yum install -y tar gzip
       - run:
           name: Ensure back-end infrastructure exists
           command: |
@@ -471,6 +476,11 @@ jobs:
     steps:
       # Checkout code from git
       - checkout
+      - restore_cache:
+          keys: [my-backend-build-cache]
+      # attach workspace
+      - attach_workspace:
+          at: /tmp/workspace
       # Add ssh keys with fingerprint
       - add_ssh_keys:
           fingerprints: ["84:b2:32:a9:e6:ef:c1:76:46:2d:e1:11:b7:73:13:45"]
@@ -482,27 +492,36 @@ jobs:
             apk add --no-cache openssh-client
             apk add --no-cache --upgrade bash
             pip install awscli
-      - restore_cache:
-          keys: [my-backend-build-cache]
-      # attach workspace
-      - attach_workspace:
-          at: ~/
+      # - run:
+      #     name: Deploy backend
+      #     command: |
+      #       pwd
+      #       tar czf backend.tar.gz backend/
+      #       export ANSIBLE_HOST_KEY_CHECKING=false
+      #       ansible-playbook -i ./.circleci/ansible/inventory.txt ./.circleci/ansible/deploy-backend.yml -vvv
+            
+      #       # cd backend
+      #       # npm install
+      #       # npm run build
+      #       # cd ..
+      #       # tar -C backend -czvf artifact.tar.gz .
+      #       # export ANSIBLE_HOST_KEY_CHECKING=false
+      #       # cat ~/project/.circleci/ansible/inventory.txt
+      #       # ansible-playbook -i ~/project/.circleci/ansible/inventory.txt ~/project/.circleci/ansible/deploy-backend.yml
       - run:
           name: Deploy backend
           command: |
-            pwd
-            tar czf backend.tar.gz backend/
-            export ANSIBLE_HOST_KEY_CHECKING=false
-            ansible-playbook -i ./.circleci/ansible/inventory.txt ./.circleci/ansible/deploy-backend.yml -vvv
-            
-            # cd backend
-            # npm install
-            # npm run build
-            # cd ..
-            # tar -C backend -czvf artifact.tar.gz .
-            # export ANSIBLE_HOST_KEY_CHECKING=false
-            # cat ~/project/.circleci/ansible/inventory.txt
-            # ansible-playbook -i ~/project/.circleci/ansible/inventory.txt ~/project/.circleci/ansible/deploy-backend.yml
+            cd backend
+            npm install
+            npm run build
+            cd ..
+            tar -C backend -czvf artifact.tar.gz .
+            mv artifact.tar.gz /tmp
+      - run:
+          name: run ansible playbook
+          command: |
+            cd .circleci/ansible
+            ansible-playbook -i /tmp/workspace/inventory deploy-backend.yml
       - slack/notify:
           event: fail
           template: basic_fail_1
