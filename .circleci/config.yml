@@ -264,7 +264,7 @@ jobs:
             #echo $(aws ec2 describe-instances --query 'Reservations[*].Instances[*].PublicIpAddress' --output text) >> ~/project/.circleci/ansible/inventory.txt
             mkdir -p /tmp/workspace
             cd .circleci/ansible
-            echo [web] > /tmp/workspace/inventory.txt
+            echo [all] > /tmp/workspace/inventory.txt
             aws ec2 describe-instances --query 'Reservations[*].Instances[*].PublicIpAddress' --output text >> /tmp/workspace/inventory.txt
             cat /tmp/workspace/inventory.txt
       - run: 
@@ -522,8 +522,8 @@ jobs:
           name: run ansible playbook
           command: |
             cd .circleci/ansible
-            chmod 744 /tmp/workspace/inventory
-            ansible-playbook -i /tmp/workspace/inventory deploy-backend.yml -vvv
+            # chmod 744 /tmp/workspace/inventory.txt
+            ansible-playbook -i /tmp/workspace/inventory.txt deploy-backend.yml -vvv
       - slack/notify:
           event: fail
           template: basic_fail_1
