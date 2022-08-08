@@ -260,8 +260,6 @@ jobs:
       - run:
           name: Add back-end ip to ansible inventory
           command: |
-            # yum install -y tar gzip
-            #echo $(aws ec2 describe-instances --query 'Reservations[*].Instances[*].PublicIpAddress' --output text) >> ~/project/.circleci/ansible/inventory.txt
             mkdir -p /tmp/workspace
             cd .circleci/ansible
             echo [all] > /tmp/workspace/inventory.txt
@@ -274,7 +272,7 @@ jobs:
       - persist_to_workspace:
           root: /tmp/workspace
           paths:
-            - inventory.txt 
+            - inventory 
       # - slack/notify:
       #     event: fail
       #     template: basic_fail_1
@@ -302,27 +300,15 @@ jobs:
       - run:
           name: Configure server
           command: |
-            # echo ENVIRONMENT=production > backend/.env
-            # echo TYPEORM_CONNECTION=$TYPEORM_CONNECTION >> backend/.env
-            # echo TYPEORM_DATABASE=$TYPEORM_DATABASE >> backend/.env
-            # echo TYPEORM_ENTITIES=$TYPEORM_ENTITIES >> backend/.env
-            # echo TYPEORM_HOST=$TYPEORM_HOST >> backend/.env
-            # echo TYPEORM_MIGRATIONS=$TYPEORM_MIGRATIONS >> backend/.env
-            # echo TYPEORM_MIGRATIONS_DIR=$TYPEORM_MIGRATIONS_DIR >> backend/.env
-            # echo TYPEORM_PASSWORD=$TYPEORM_PASSWORD >> backend/.env
-            # echo TYPEORM_PORT=$TYPEORM_PORT >> backend/.env
-            # echo TYPEORM_USERNAME=$TYPEORM_USERNAME >> backend/.env
-            # cd .circleci/ansible 
-            # ansible-playbook -i inventory.txt configure-server.yml
             cd .circleci/ansible
             ls
             cat /tmp/workspace/inventory.txt
             export ANSIBLE_HOST_KEY_CHECKING=false
             ansible-playbook -i /tmp/workspace/inventory.txt configure-server.yml
-      - persist_to_workspace:
-          root: ~/
-          paths: 
-            - project/backend   
+      # - persist_to_workspace:
+      #     root: ~/
+      #     paths: 
+      #       - project/backend   
       - destroy-environment
 
   # run-migrations:
@@ -415,6 +401,7 @@ jobs:
             if grep -q "has been executed successfully." backend/migrations_dump.txt
             then
               curl --insecure https://kvdb.io/4dTF5mWR7fZnLDVFoYTec3/migration_${CIRCLE_WORKFLOW_ID:0:7} -d "1"
+              echo "done"
             else
               curl --insecure https://kvdb.io/4dTF5mWR7fZnLDVFoYTec3/migration_${CIRCLE_WORKFLOW_ID:0:7} -d "0"
             fi
