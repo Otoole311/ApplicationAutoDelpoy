@@ -412,7 +412,7 @@ jobs:
           name: Send migration results to kvdb.io
           command: |
             # Your code here
-            if grep -q "has been executed successfully." ~/project/backend/migrations_dump.txt
+            if grep -q "has been executed successfully." backend/migrations_dump.txt
             then
               curl --insecure https://kvdb.io/4dTF5mWR7fZnLDVFoYTec3/migration_${CIRCLE_WORKFLOW_ID:0:7} -d "1"
             else
@@ -522,7 +522,7 @@ jobs:
           name: run ansible playbook
           command: |
             cd .circleci/ansible
-            # chmod 744 /tmp/workspace/inventory.txt
+            chmod 744 /tmp/workspace/inventory.txt
             ansible-playbook -i /tmp/workspace/inventory.txt deploy-backend.yml -vvv
       - slack/notify:
           event: fail
