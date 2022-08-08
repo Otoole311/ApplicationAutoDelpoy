@@ -522,7 +522,7 @@ jobs:
           name: run ansible playbook
           command: |
             cd .circleci/ansible
-            sudo chmod 744 /tmp/workspace/inventory
+            chmod 744 /tmp/workspace/inventory
             ansible-playbook -i /tmp/workspace/inventory deploy-backend.yml -vvv
       - slack/notify:
           event: fail
