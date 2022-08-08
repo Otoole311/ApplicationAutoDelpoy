@@ -272,7 +272,7 @@ jobs:
       - persist_to_workspace:
           root: /tmp/workspace
           paths:
-            - inventory 
+            - inventory.txt 
       # - slack/notify:
       #     event: fail
       #     template: basic_fail_1
