@@ -398,12 +398,13 @@ jobs:
           name: Send migration results to kvdb.io
           command: |
             # Your code here
-            if grep -q "has been executed successfully." backend/migrations_dump.txt
+            if grep -q "has been executed successfully." ~/project/backend/migrations_dump.txt
             then
               curl --insecure https://kvdb.io/4dTF5mWR7fZnLDVFoYTec3/migration_${CIRCLE_WORKFLOW_ID:0:7} -d "1"
               echo "done"
             else
               curl --insecure https://kvdb.io/4dTF5mWR7fZnLDVFoYTec3/migration_${CIRCLE_WORKFLOW_ID:0:7} -d "0"
+              echo "no"
             fi
       - destroy-environment
       - revert-migrations
@@ -541,11 +542,11 @@ jobs:
       - run:
           name: Backend smoke test.
           command: |
-            BACKEND_IP=$(aws ec2 describe-instances --query 'Reservations[*].Instances[*].PublicIpAddress' --output text)
-            # Fetch and prepare the BACKEND_IP env var
+            export BACKEND_IP=$(aws ec2 describe-instances --query 'Reservations[*].Instances[*].PublicIpAddress' --output text)
             export API_URL="http://${BACKEND_IP}:3030"
             echo "${API_URL}"
-            if curl -s "${API_URL}/api/status" | grep "welcome"
+            sleep 20s
+            if curl "${API_URL}/api/status" | grep "welcome"
             then
                 return 0
             else
