@@ -22,8 +22,8 @@
     npm run build
     npm install forever -g
     npm install ts-node -g
-  forever start -c "ts-node -r tsconfig-paths/register -r dotenv/config src/main.ts" ./
-  register: execute_node
+    forever start -c "ts-node -r tsconfig-paths/register -r dotenv/config src/main.ts" ./
+    register: execute_node
     pm2 stop default
     pm2 start npm -- start
   args:
