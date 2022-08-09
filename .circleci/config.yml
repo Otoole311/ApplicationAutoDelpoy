@@ -292,7 +292,7 @@ jobs:
       - checkout
       # Add ssh keys with fingerprint
       - add_ssh_keys:
-          fingerprints: ["84:b2:32:a9:e6:ef:c1:76:46:2d:e1:11:b7:73:13:45"]
+          fingerprints: ["b8:cc:3c:cc:4c:ab:e1:76:c0:36:cc:9d:4d:8c:0e:fe"]
       # attach workspace
       - attach_workspace:
           at: /tmp/workspace
@@ -350,7 +350,6 @@ jobs:
           name: Send migration results to kvdb.io
           command: |
             # Your code here
-            #cat /backend/migrations_dump.txt
             cat ~/project/backend/migrations_dump.txt
             if grep -q "has been executed successfully." ~/project/backend/migrations_dump.txt
             then
@@ -426,7 +425,7 @@ jobs:
           at: /tmp/workspace
       # Add ssh keys with fingerprint
       - add_ssh_keys:
-          fingerprints: ["84:b2:32:a9:e6:ef:c1:76:46:2d:e1:11:b7:73:13:45"]
+          fingerprints: ["b8:cc:3c:cc:4c:ab:e1:76:c0:36:cc:9d:4d:8c:0e:fe"]
       - run:
           name: Install dependencies
           command: |
@@ -484,7 +483,7 @@ jobs:
             export API_URL="http://${BACKEND_IP}:3030"
             echo "${API_URL}"
             sleep 20s
-            if curl "${API_URL}/api/status" | grep "welcome"
+            if curl -v "${API_URL}/api/status" | grep "welcome"
             then
                 return 0
             else
