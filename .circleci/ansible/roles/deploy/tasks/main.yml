@@ -19,6 +19,7 @@
 - name: serve file
   shell: |
     npm install
+    npm run build
     pm2 stop default
     pm2 start npm -- start
   args:

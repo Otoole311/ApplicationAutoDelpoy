@@ -485,8 +485,10 @@ jobs:
             sleep 20s
             if curl -v "${API_URL}/api/status" | grep "welcome"
             then
+                echo "done"
                 return 0
             else
+                echo "not done"
                 return 0
             fi
       - run:
@@ -526,7 +528,10 @@ jobs:
               --query "Exports[?Name==\`WorkflowID\`].Value" \
               --no-paginate --output text)
             echo "OLD_WORKFLOW_ID=$OLD_WORKFLOW_ID"
-            # curl -H "Content-Type: text/plain" -H "token: 7079126b-54c1-4ae1-b7cf-577d8a27c76f" --request PUT --data "$OLD_WORKFLOW_ID" https://api.memstash.io/values/OLD_WORKFLOW_ID
+
+            # save it in kvdb
+            curl -k https://kvdb.io/4dTF5mWR7fZnLDVFoYTec3/OldWorkflowID  -d "${OldWorkflowID}"
+
       - run:
           name: Update cloudfront distribution
           command: |
@@ -549,26 +554,37 @@ jobs:
           name: Get old workflow ID and remove old stacks and files
           command: |
             # Fetch the Old workflow ID
-            export OldWorkflowID=$(aws cloudformation list-exports --query "Exports[?Name==\`WorkflowID\`].Value" --no-paginate --output text)
+            # export OldWorkflowID=$(aws cloudformation list-exports --query "Exports[?Name==\`WorkflowID\`].Value" --no-paginate --output text)
             
-            echo OldWorkflowID: "${OldWorkflowID}"
+            # echo OldWorkflowID: "${OldWorkflowID}"
 
-            echo CIRCLE_WORKFLOW_ID "${CIRCLE_WORKFLOW_ID:0:7}"
+            # echo CIRCLE_WORKFLOW_ID "${CIRCLE_WORKFLOW_ID:0:7}"
 
-            # Fetch the stack names          
-            export STACKS=($(aws cloudformation list-stacks --query "StackSummaries[*].StackName" --stack-status-filter CREATE_COMPLETE --no-paginate --output text)) 
+            # # Fetch the stack names          
+            # export STACKS=($(aws cloudformation list-stacks --query "StackSummaries[*].StackName" --stack-status-filter CREATE_COMPLETE --no-paginate --output text)) 
             
-            echo Stack names: "${STACKS[@]}"
+            # echo Stack names: "${STACKS[@]}"
 
-            if [ [ "${CIRCLE_WORKFLOW_ID:0:7}" != "${OldWorkflowID}" ] ]
+            # if [ [ "${CIRCLE_WORKFLOW_ID:0:7}" != "${OldWorkflowID}" ] ]
+            # then
+            #     #Delete old stack
+            #     echo "${OldWorkflowID} != ${CIRCLE_WORKFLOW_ID:0:7}: the old stack and files are going to be deleted"
+            #     aws s3 rm "s3://udapeople-${OldWorkflowID}" --recursive
+            #     aws cloudformation delete-stack --stack-name "udapeople-frontend-${OldWorkflowID}"
+            #     aws cloudformation delete-stack --stack-name "udapeople-backend-${OldWorkflowID}"
+            # else
+            #     echo "${OLD_WORKFLOW_ID}==${NEW_WORKFLOW_ID}: the old and new stacks are the same, no changes applied"
+            # fi
+
+            # Fetch the Old workflow ID
+            export OldWorkflowID=$(curl --insecure https://kvdb.io/4dTF5mWR7fZnLDVFoYTec3/OldWorkflowID)
+            echo "OldWorkflowID is ${OldWorkflowID}"          
+            # remove old stack
+            if [[ "${CIRCLE_WORKFLOW_1D:0:5}" != "${OldWorkflowID}" ]] 
             then
-                #Delete old stack
-                echo "${OldWorkflowID} != ${CIRCLE_WORKFLOW_ID:0:7}: the old stack and files are going to be deleted"
-                aws s3 rm "s3://udapeople-${OldWorkflowID}" --recursive
-                aws cloudformation delete-stack --stack-name "udapeople-frontend-${OldWorkflowID}"
-                aws cloudformation delete-stack --stack-name "udapeople-backend-${OldWorkflowID}"
-            else
-                echo "${OLD_WORKFLOW_ID}==${NEW_WORKFLOW_ID}: the old and new stacks are the same, no changes applied"
+              aws s3 rm "s3://udapeople-${OldWorkflowID}" --recursive
+              aws cloudformation delete-stack --stack-name "udapeople-backend-${OldWorkflowID}"
+              aws cloudformation delete-stack --stack-name "udapeople-frontend-${OldWorkflowID}"
             fi
 
 workflows:
