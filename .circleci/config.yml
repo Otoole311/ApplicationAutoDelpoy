@@ -350,7 +350,7 @@ jobs:
           name: Send migration results to kvdb.io
           command: |
             # Your code here
-            cat /backend/migrations_dump.txt
+            #cat /backend/migrations_dump.txt
             cat ~/project/backend/migrations_dump.txt
             if grep -q "has been executed successfully." ~/project/backend/migrations_dump.txt
             then
