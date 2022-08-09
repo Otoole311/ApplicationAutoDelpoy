@@ -496,7 +496,7 @@ jobs:
             echo $fURL}
             if curl -s ${URL} | grep "Welcome"
             then
-              return 1
+              return 0
             else
               # echo "frontend failed"
               return 1
