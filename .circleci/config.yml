@@ -24,7 +24,6 @@ commands:
       - run:
           name: Add env vars to .env file
           command: |
-            echo ENVIRONMENT=production > "./backend/.env"
             echo TYPEORM_CONNECTION=$TYPEORM_CONNECTION >> "./backend/.env"
             echo TYPEORM_MIGRATIONS_DIR=$TYPEORM_MIGRATIONS_DIR >> "./backend/.env"
             echo TYPEORM_ENTITIES=$TYPEORM_ENTITIES >> "./backend/.env"
@@ -38,7 +37,7 @@ commands:
   revert-migrations:
     description: Revert the last migration if successfully run in the current workflow.
     parameters:
-      # Add parameter here     
+      # Add parameter here    # 
     steps:
       - run:
           name: Revert migrations
@@ -116,7 +115,7 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          keys: [my-backend-build-cache]
+          keys: [Final-backend]
       - run:
           name: Back-end build
           command: |
@@ -125,7 +124,7 @@ jobs:
             npm run build
       - save_cache:
           paths: [backend/node_modules]
-          key: my-backend-build-cache
+          key: Final-backend
       - slack/notify:
           event: fail
           template: basic_fail_1
@@ -167,7 +166,7 @@ jobs:
       - checkout
       # Restore from cache
       - restore_cache:
-          keys: [my-backend-build-cache]
+          keys: [Final-backend]
       # Your job code here
       - run:
           name: Run backend test
@@ -215,7 +214,7 @@ jobs:
       - checkout
       # Restore from cache
       - restore_cache:
-          keys: [my-backend-build-cache]
+          keys: [Final-backend]
       # Your job code here
       - run:
           name: Scan Backend for security vulnerability issues
@@ -249,7 +248,8 @@ jobs:
               --template-file .circleci/files/backend.yml \
               --tags project=udapeople \
               --stack-name "udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7}" \
-              --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}"  
+              --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}" \
+              --tags project=udapeople
       - run:
           name: Ensure front-end infrastructure exist
           command: |
@@ -292,7 +292,7 @@ jobs:
       - checkout
       # Add ssh keys with fingerprint
       - add_ssh_keys:
-          fingerprints: ["b8:cc:3c:cc:4c:ab:e1:76:c0:36:cc:9d:4d:8c:0e:fe"]
+          fingerprints: ["4a:ff:ad:2d:f2:75:f3:e3:c6:1d:e8:6d:b6:1f:8e:36"]
       # attach workspace
       - attach_workspace:
           at: /tmp/workspace
@@ -314,8 +314,8 @@ jobs:
 
   run-migrations:
     docker:
-      - image: cimg/node:13.8.0
-        environment:
+      - image: circleci/node:13.8.0
+        environment: cimg/node:13.8.0
           TYPEORM_MIGRATIONS: $TYPEORM_MIGRATIONS
           TYPEORM_MIGRATIONS_DIR: $TYPEORM_MIGRATIONS_DIR
           TYPEORM_CONNECTION: $TYPEORM_CONNECTION
@@ -338,7 +338,7 @@ jobs:
       # - attach_workspace:
       #     at: ~/      
       - restore_cache:
-          keys: [my-backend-build-cache]      
+          keys: [Final-backend]      
       - run:
           name: Run migrations
           command: |
@@ -419,13 +419,13 @@ jobs:
       # Checkout code from git
       - checkout
       - restore_cache:
-          keys: [my-backend-build-cache]
+          keys: [Final-backend]
       # attach workspace
       - attach_workspace:
           at: /tmp/workspace
       # Add ssh keys with fingerprint
       - add_ssh_keys:
-          fingerprints: ["b8:cc:3c:cc:4c:ab:e1:76:c0:36:cc:9d:4d:8c:0e:fe"]
+          fingerprints: ["4a:ff:ad:2d:f2:75:f3:e3:c6:1d:e8:6d:b6:1f:8e:36"]
       - run:
           name: Install dependencies
           command: |
@@ -536,9 +536,9 @@ jobs:
           name: Update cloudfront distribution
           command: |
             aws cloudformation deploy \
-              --template-file ./.circleci/files/cloudfront.yml \
+              --template-file .circleci/files/cloudfront.yml \
               --tags project=udapeople \
-              --stack-name "udapeople-cloudfront-production" \
+              --stack-name "InitialStack" \
               --parameter-overrides WorkflowID="${CIRCLE_WORKFLOW_ID:0:7}"
       # Here's where you will add some code to rollback on failure  
       - destroy-environment
@@ -553,29 +553,6 @@ jobs:
       - run:
           name: Get old workflow ID and remove old stacks and files
           command: |
-            # Fetch the Old workflow ID
-            # export OldWorkflowID=$(aws cloudformation list-exports --query "Exports[?Name==\`WorkflowID\`].Value" --no-paginate --output text)
-            
-            # echo OldWorkflowID: "${OldWorkflowID}"
-
-            # echo CIRCLE_WORKFLOW_ID "${CIRCLE_WORKFLOW_ID:0:7}"
-
-            # # Fetch the stack names          
-            # export STACKS=($(aws cloudformation list-stacks --query "StackSummaries[*].StackName" --stack-status-filter CREATE_COMPLETE --no-paginate --output text)) 
-            
-            # echo Stack names: "${STACKS[@]}"
-
-            # if [ [ "${CIRCLE_WORKFLOW_ID:0:7}" != "${OldWorkflowID}" ] ]
-            # then
-            #     #Delete old stack
-            #     echo "${OldWorkflowID} != ${CIRCLE_WORKFLOW_ID:0:7}: the old stack and files are going to be deleted"
-            #     aws s3 rm "s3://udapeople-${OldWorkflowID}" --recursive
-            #     aws cloudformation delete-stack --stack-name "udapeople-frontend-${OldWorkflowID}"
-            #     aws cloudformation delete-stack --stack-name "udapeople-backend-${OldWorkflowID}"
-            # else
-            #     echo "${OLD_WORKFLOW_ID}==${NEW_WORKFLOW_ID}: the old and new stacks are the same, no changes applied"
-            # fi
-
             # Fetch the Old workflow ID
             export OldWorkflowID=$(curl --insecure https://kvdb.io/4dTF5mWR7fZnLDVFoYTec3/OldWorkflowID)
             echo "OldWorkflowID is ${OldWorkflowID}"          
